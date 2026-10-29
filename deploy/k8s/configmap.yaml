@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maildev-config
+data:
+  MAILDEV_HTTP_ADDR: ":8080"
+  # Containers run unprivileged, so they listen on high ports; the LoadBalancer
+  # Service maps 25/465/587/143/993/110/995 onto them.
+  MAILDEV_SMTP_ADDRS: ":1025,:1587"
+  MAILDEV_SMTPS_ADDRS: ":1465"
+  MAILDEV_IMAP_ADDRS: ":1143"
+  MAILDEV_IMAPS_ADDRS: ":1993"
+  MAILDEV_POP3_ADDRS: ":1110"
+  MAILDEV_POP3S_ADDRS: ":1995"
+  MAILDEV_PUBLIC_SMTP_PORTS: "25,587"
+  MAILDEV_PUBLIC_SMTPS_PORTS: "465"
+  MAILDEV_PUBLIC_IMAP_PORTS: "143"
+  MAILDEV_PUBLIC_IMAPS_PORTS: "993"
+  MAILDEV_PUBLIC_POP3_PORTS: "110"
+  MAILDEV_PUBLIC_POP3S_PORTS: "995"
+  MAILDEV_HOSTNAME: "smtp.maildev.example.com"
+  MAILDEV_PUBLIC_URL: "https://maildev.example.com"
+  MAILDEV_MAIL_HOST: "smtp.maildev.example.com"
+  MAILDEV_TLS_CERT: "/tls/tls.crt"
+  MAILDEV_TLS_KEY: "/tls/tls.key"
+  MAILDEV_AUTH_MODE: "ldap"
+  MAILDEV_LDAP_URL: "ldaps://dc01.example.com:636"
+  MAILDEV_LDAP_BASE_DN: "ou=members,dc=example,dc=com"
+  MAILDEV_LDAP_UPN_SUFFIX: "example.com"
+  MAILDEV_LDAP_CA_FILE: "/ldap-ca/ca.crt"
+  MAILDEV_ADMIN_USERS: "buithephong"
+  MAILDEV_SESSION_TTL: "12h"
+  MAILDEV_COOKIE_SECURE: "true"
+  MAILDEV_MAX_MESSAGE_BYTES: "26214400"
+  MAILDEV_DEMO_PROJECT: "true"
+  MAILDEV_LOG_MAIL_EVENTS: "true"
+  # Company user list for the member picker (username = sAMAccountName).
+  # Optional JSON list of company users for the member picker.
+  MAILDEV_DIRECTORY_URL: "https://directory.example.com/users/"
+  # At-rest encryption: per-project data keys wrapped by OpenBao Transit (AppRole creds in secret maildev-openbao).
+  MAILDEV_OPENBAO_ADDR: "http://openbao-active.openbao.svc:8200"
+  MAILDEV_OPENBAO_TRANSIT_MOUNT: "transit"
+  MAILDEV_ENCRYPT_BACKLOG: "true"
+  # S/MIME signatures are verified against the company PKI (OpenBao) plus public roots.
+  MAILDEV_SMIME_CA_URLS: "https://vault.example.com/v1/pki-int/ca_chain,https://vault.example.com/v1/pki-root/ca_chain"
+  MAILDEV_SMIME_SYSTEM_ROOTS: "true"
+  TZ: "Asia/Ho_Chi_Minh"

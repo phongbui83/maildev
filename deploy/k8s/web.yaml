@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maildev-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: maildev-web
+  template:
+    metadata:
+      labels:
+        app: maildev-web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10002
+      containers:
+        - name: web
+          image: ghcr.io/phongbui83/maildev/web
+          imagePullPolicy: Always
+          env:
+            # Only used by Next.js rewrites; the gateway normally routes /api directly.
+            - name: API_UPSTREAM
+              value: http://maildev-api:8080
+          ports:
+            - { name: http, containerPort: 3000 }
+          readinessProbe:
+            httpGet: { path: /login, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: maildev-web
+spec:
+  selector:
+    app: maildev-web
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

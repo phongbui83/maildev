@@ -1,0 +1,69 @@
+# Full edition on one host: PostgreSQL + API (SMTP/IMAP/POP3/REST) + web UI.
+#   cp .env.example .env   (set MAILDEV_MASTER_KEY)
+#   docker compose up --build -d
+#   open http://localhost:3000  (auth mode dev: any username, password "dev"; "admin" is admin)
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: maildev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maildev}
+      POSTGRES_DB: maildev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maildev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    image: ${API_IMAGE:-maildev/api:local}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      MAILDEV_DATABASE_URL: postgres://maildev:${POSTGRES_PASSWORD:-maildev}@postgres:5432/maildev?sslmode=disable
+      MAILDEV_HTTP_ADDR: ":8080"
+      MAILDEV_SMTP_ADDRS: ":1025,:1587"
+      MAILDEV_SMTPS_ADDRS: ":1465"
+      MAILDEV_IMAP_ADDRS: ":1143"
+      MAILDEV_IMAPS_ADDRS: ":1993"
+      MAILDEV_POP3_ADDRS: ":1110"
+      MAILDEV_POP3S_ADDRS: ":1995"
+      MAILDEV_PUBLIC_SMTP_PORTS: "${SMTP_PORT:-1025},${SUBMISSION_PORT:-1587}"
+      MAILDEV_PUBLIC_SMTPS_PORTS: "${SMTPS_PORT:-1465}"
+      MAILDEV_PUBLIC_IMAP_PORTS: "${IMAP_PORT:-1143}"
+      MAILDEV_PUBLIC_IMAPS_PORTS: "${IMAPS_PORT:-1993}"
+      MAILDEV_PUBLIC_POP3_PORTS: "${POP3_PORT:-1110}"
+      MAILDEV_PUBLIC_POP3S_PORTS: "${POP3S_PORT:-1995}"
+    volumes:
+      - ./certs:/certs:ro        # optional: tls.crt/tls.key (MAILDEV_TLS_CERT/KEY), ldap-ca.crt, smime-ca.pem
+    ports:
+      - "${API_PORT:-8080}:8080"
+      - "${SMTP_PORT:-1025}:1025"
+      - "${SUBMISSION_PORT:-1587}:1587"
+      - "${SMTPS_PORT:-1465}:1465"
+      - "${IMAP_PORT:-1143}:1143"
+      - "${IMAPS_PORT:-1993}:1993"
+      - "${POP3_PORT:-1110}:1110"
+      - "${POP3S_PORT:-1995}:1995"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        API_UPSTREAM: http://api:8080
+    image: ${WEB_IMAGE:-maildev/web:local}
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

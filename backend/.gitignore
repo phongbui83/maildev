@@ -1,0 +1,4 @@
+maildev
+/dist/
+*.log
+.env

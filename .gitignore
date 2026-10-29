@@ -1,0 +1,14 @@
+.env
+*.log
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/tsconfig.tsbuildinfo
+/lite/data/
+/lite/certs/
+/lite/dist/
+/lite/internal/webui/dist/*
+!/lite/internal/webui/dist/index.html
+*.db
+*.db-wal
+*.db-shm

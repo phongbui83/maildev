@@ -1,0 +1,40 @@
+# Attaches to the shared Envoy Gateway (envoy-gateway-system/envoy-gateway, HTTPS
+# listener with the *.example.com wildcard). Point maildev.example.com at <gateway IP>.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: maildev
+spec:
+  hostnames:
+    - maildev.example.com
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-gateway
+      namespace: envoy-gateway-system
+      sectionName: https
+  rules:
+    # Backend API, provider-compatible ingestion and health endpoints.
+    - matches:
+        - path: { type: PathPrefix, value: /api }
+        - path: { type: PathPrefix, value: /sendgrid }
+        - path: { type: PathPrefix, value: /ses }
+        - path: { type: PathPrefix, value: /v3/mail/send }
+        - path: { type: PathPrefix, value: /v2/email/outbound-emails }
+        - path: { type: PathPrefix, value: /azure }
+        - path: { type: PathPrefix, value: /graph }
+        - path: { type: PathPrefix, value: /gmail }
+        - path: { type: Exact, value: /healthz }
+        - path: { type: Exact, value: /readyz }
+      backendRefs:
+        - name: maildev-api
+          port: 8080
+      # Server-Sent Events keep the request open; disable the per-request timeout.
+      timeouts:
+        request: 0s
+        backendRequest: 0s
+    - matches:
+        - path: { type: PathPrefix, value: / }
+      backendRefs:
+        - name: maildev-web
+          port: 3000

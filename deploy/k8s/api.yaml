@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maildev-api
+spec:
+  # Single replica: SSE and IMAP IDLE notifications are in-process. Scale out
+  # only after moving the event bus to Postgres LISTEN/NOTIFY.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: maildev-api
+  template:
+    metadata:
+      labels:
+        app: maildev-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: api
+          image: ghcr.io/phongbui83/maildev/api
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: maildev-config
+          env:
+            - name: MAILDEV_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: maildev-secrets
+                  key: MAILDEV_DATABASE_URL
+            - name: MAILDEV_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: maildev-secrets
+                  key: MAILDEV_MASTER_KEY
+            - name: MAILDEV_OPENBAO_ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: maildev-openbao
+                  key: MAILDEV_OPENBAO_ROLE_ID
+            - name: MAILDEV_OPENBAO_SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: maildev-openbao
+                  key: MAILDEV_OPENBAO_SECRET_ID
+          ports:
+            - { name: http, containerPort: 8080 }
+            - { name: smtp, containerPort: 1025 }
+            - { name: submission, containerPort: 1587 }
+            - { name: smtps, containerPort: 1465 }
+            - { name: imap, containerPort: 1143 }
+            - { name: imaps, containerPort: 1993 }
+            - { name: pop3, containerPort: 1110 }
+            - { name: pop3s, containerPort: 1995 }
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+            - name: ldap-ca
+              mountPath: /ldap-ca
+              readOnly: true
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { memory: 1Gi }
+      volumes:
+        - name: tls
+          secret:
+            secretName: maildev-tls
+        - name: ldap-ca
+          secret:
+            secretName: ad-ca
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: maildev-api
+spec:
+  selector:
+    app: maildev-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+# Public SMTP/IMAP endpoint. MetalLB assigns the IP; point smtp.maildev.example.com at it.
+# externalTrafficPolicy Local keeps the client IP visible in the audit trail.
+apiVersion: v1
+kind: Service
+metadata:
+  name: maildev-mail
+  annotations:
+    metallb.io/allow-shared-ip: maildev
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    app: maildev-api
+  ports:
+    - { name: smtp, port: 25, targetPort: smtp }
+    - { name: submission, port: 587, targetPort: submission }
+    - { name: smtps, port: 465, targetPort: smtps }
+    - { name: imap, port: 143, targetPort: imap }
+    - { name: imaps, port: 993, targetPort: imaps }
+    - { name: pop3, port: 110, targetPort: pop3 }
+    - { name: pop3s, port: 995, targetPort: pop3s }

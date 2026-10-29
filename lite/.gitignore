@@ -1,0 +1,10 @@
+/data/
+/certs/
+/dist/
+/internal/webui/dist/*
+!/internal/webui/dist/index.html
+*.db
+*.db-wal
+*.db-shm
+*.tar
+.env

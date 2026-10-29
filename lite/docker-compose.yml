@@ -1,0 +1,23 @@
+# MailDev lite: single container, SQLite in ./data, certificate in ./certs.
+# Standard mail ports on the host map onto the unprivileged container ports.
+services:
+  maildev:
+    image: ${MAILDEV_IMAGE:-ghcr.io/phongbui83/maildev/lite:latest}
+    build:
+      context: ..
+      dockerfile: lite/Dockerfile
+    container_name: maildev-lite
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "443:8443"     # web UI (HTTPS)
+      - "25:1025"      # SMTP (plain / STARTTLS)
+      - "587:1587"     # SMTP submission (STARTTLS)
+      - "465:1465"     # SMTPS
+      - "143:1143"     # IMAP (STARTTLS)
+      - "993:1993"     # IMAPS
+      - "110:1110"     # POP3 (STLS)
+      - "995:1995"     # POP3S
+    volumes:
+      - ./data:/data
+      - ./certs:/certs:ro

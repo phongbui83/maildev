@@ -1,0 +1,16 @@
+# One certificate used by the API pod for SMTP/IMAP TLS. HTTPS for the web UI is
+# terminated by the shared Envoy Gateway with its *.example.com wildcard.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: maildev-tls
+spec:
+  secretName: maildev-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - maildev.example.com
+    - smtp.maildev.example.com
+  duration: 2160h
+  renewBefore: 360h

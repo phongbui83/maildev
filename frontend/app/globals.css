@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #eef2f6;
+  --panel: #ffffff;
+  --border: #d9dfe7;
+  --text: #1f2933;
+  --muted: #5b6776;
+  --accent: #0f6cbd;
+  --accent-soft: #e3effa;
+  --danger: #c4314b;
+  --ok: #107c41;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1419;
+  --panel: #171d26;
+  --border: #2a3340;
+  --text: #e6e9ee;
+  --muted: #94a0b2;
+  --accent: #60a5fa;
+  --accent-soft: #1e3a5f;
+  --danger: #f87171;
+  --ok: #4ade80;
+  --shadow: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1419;
+    --panel: #171d26;
+    --border: #2a3340;
+    --text: #e6e9ee;
+    --muted: #94a0b2;
+    --accent: #60a5fa;
+    --accent-soft: #1e3a5f;
+    --danger: #f87171;
+    --ok: #4ade80;
+  }
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  height: 100%;
+}
+
+* { box-sizing: border-box; }
+
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+.muted { color: var(--muted); }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 14px; cursor: pointer;
+  transition: background .12s;
+}
+.btn:hover { background: color-mix(in srgb, var(--panel) 92%, var(--text) 8%); border-color: color-mix(in srgb, var(--border) 60%, var(--text) 40%); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: color-mix(in srgb, var(--accent) 85%, #000 15%); }
+.btn-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+.btn-sm { padding: 4px 9px; font-size: 13px; }
+.input {
+  width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 14px;
+}
+.input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); color: var(--muted); }
+.badge-accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.badge-ok { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); border-color: transparent; }
+.badge-danger { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); border-color: transparent; }
+.tab { padding: 8px 12px; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font-size: 14px; }
+.tab-active { border-color: var(--accent); color: var(--text); }
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre;
+}
+table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.tbl th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; padding: 8px; border-bottom: 1px solid var(--border); }
+table.tbl td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.row-unread { font-weight: 600; }
+.row-active { background: var(--accent-soft); }
+.tab-active { color: var(--accent); }
+header, .cmdbar { box-shadow: var(--shadow); }
+.scroll { overflow: auto; scrollbar-width: thin; }
+
+/* project cards */
+.pcard { border-left: 5px solid var(--card-color, var(--accent)); transition: box-shadow .12s, transform .12s; }
+.pcard:hover, .pcard-active { box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+.pcard-active { outline: 2px solid var(--card-color, var(--accent)); outline-offset: 0; }
+.pcard-dragging { opacity: .5; }
+.acard { border-top: 4px solid var(--card-color, var(--accent)); }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { padding: 4px 8px; font-size: 12px; background: var(--panel); color: var(--muted); border: 0; cursor: pointer; }
+.seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
